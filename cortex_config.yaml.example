@@ -1,0 +1,95 @@
+# cortex_config.yaml — claude-cortex layout configuration
+#
+# Customizes the structure of MEMORY.md (the auto-generated index).
+# Copy to your project root as `cortex_config.yaml` and edit.
+# If this file is absent, rebuild_index.py falls back to built-in defaults.
+#
+# Sections are assigned to memories via their frontmatter:
+#   index_entry:
+#     section: "🧠 Semantic — Design"
+#     order: 10
+#     label: "..."
+#     hook: "..."
+
+# Ordered list of sections that appear in MEMORY.md
+# (sections listed in `subfiles.*.sections` below are delocated to sub-files)
+sections:
+  - "🧠 Semantic — Project state"
+  - "🧠 Semantic — Design"
+  - "🧠 Semantic — Architecture"
+  - "⚙️ Procedural — Workflows"
+  - "⚙️ Procedural — Meta"
+  - "⚙️ Procedural — Code quality"
+  - "📅 Episodic — Sessions"
+  - "🎯 Validated designs"
+  - "🚧 Future work"
+  - "📂 Stable project context"
+  - "🔗 External references"
+
+# Sections delocated to sub-files (linked from a 📚 Sub-index block in MEMORY.md)
+subfiles:
+  MEMORY_BACKLOG.md:
+    title: "Backlog & stable context"
+    description: "validated designs not yet implemented, future work, stable project context"
+    sections:
+      - "🎯 Validated designs"
+      - "🚧 Future work"
+      - "📂 Stable project context"
+  MEMORY_REFERENCES.md:
+    title: "External references"
+    description: "systems/resources outside the project (frameworks, vendor APIs, etc.)"
+    sections:
+      - "🔗 External references"
+
+# Suffix rendered after the category in the section header (after " — ")
+# Set to null to omit the suffix.
+category_suffix:
+  "🧠 Semantic": "stable project facts"
+  "⚙️ Procedural": "workflows and rules"
+  "📅 Episodic": "incidents and notable sessions"
+  "🎯 Validated designs": "not yet implemented (high priority)"
+  "🚧 Future work": "backlog ideation"
+  "📂 Stable project context": null
+  "🔗 External references": "systems outside the project"
+
+# Prologue rendered at the top of MEMORY.md (free-form Markdown)
+prologue: |
+  ## 🚨 SESSION START — read in order
+
+  1. **<your project state file>** — current session state
+  2. **<entry-point design docs>** — vision + roadmap
+  3. **<canonical fact registry>** — cross-system facts
+  4. **[User profile](user_profile.md)** + project overviews
+
+  Out-of-sync code ↔ memory → **[MEMORY_PROTOCOL.md](MEMORY_PROTOCOL.md)**.
+
+  ## 🔍 FINDING A MEMORY (BGE-M3, ~30ms)
+
+  ```bash
+  python scripts/vector.py search "<topic>" --k 3
+  ```
+
+  Score < 0.4 → fall back to grep.
+
+  ## 🛠️ MEMORY SKILLS (`/name`)
+
+  - `/sync-memory` reindexes BGE-M3 + rebuild MEMORY.md + verify
+  - `/audit-memory` monthly freshness audit
+  - `/consolidate-memory` end-of-session learnings extraction
+  - `/handoff` close session with summary file
+
+  ## ⚙️ REFLEXES
+
+  - Topic mentioned → `vector.py` BEFORE grep
+  - Memory change or project fact → `/sync-memory` right away
+  - Doubt about info → `verify.py --fail-only`
+  - Anti-duplicate MANDATORY before creating memory: `vector.py search "<topic>"`
+
+# Epilogue rendered at the bottom of MEMORY.md
+epilogue: |
+
+  ---
+
+  ## 🗑️ ARCHIVE (`memory/_archive/`, out of index)
+
+  Obsolete memories are moved to `_archive/` with date prefix `YYYY-MM-DD_`. See [MEMORY_PROTOCOL.md](MEMORY_PROTOCOL.md) §Archiving for the procedure.
