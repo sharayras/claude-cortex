@@ -49,6 +49,6 @@ _vector_index/
 .cortex-test-memory/
 .test-target/
 
-# Demo assets (regenerable from docs/demo/demo.cast — large binary, not committed)
-docs/demo/demo.svg
+# Demo assets : .gif gitignored (large + regenerable). demo.svg IS committed
+# (~500 KB, scrolling viewport + indefinite loop, browser-renderable on GitHub).
 docs/demo/demo.gif

@@ -104,14 +104,19 @@ def render_svg(cast_path: Path) -> str:
         f'  <g transform="translate(20, 26)" fill="#d4d4d4">',
     ]
 
-    # For each keyframe, emit a <g> with display:none initially, animated to display:inline at its timestamp
-    # (Using <set> attribute animation rather than <animate> for cleaner display switching)
+    # For each keyframe, emit a <g> animated via opacity. Only the last `height`
+    # lines of the cumulative buffer are rendered (terminal-style scrolling) so
+    # the viewport stays bounded — without this, the SVG accumulates all output
+    # vertically and the lines also overflow horizontally for wide outputs.
     for idx, (time, content) in enumerate(keyframes):
-        # Convert content to SVG text lines
-        spans_per_line = []
-        for raw_line in content.split("\n"):
-            line_spans = ansi_to_spans(raw_line)
-            spans_per_line.append(line_spans)
+        # Split content into lines (handles \r\n by splitting on \n; trailing \r is harmless in SVG)
+        all_lines = content.split("\n")
+        # Keep only the last `height` lines (scroll viewport)
+        visible_lines = all_lines[-height:]
+        # Truncate each line to `width` chars to prevent horizontal overflow
+        # (real terminals wrap; we truncate as a simpler approximation)
+        truncated_lines = [line[:width] for line in visible_lines]
+        spans_per_line = [ansi_to_spans(line) for line in truncated_lines]
 
         # Build the <text> element with one <tspan> per line / per color span
         text_parts = [f'    <text x="0" y="0" xml:space="preserve">']
@@ -129,15 +134,27 @@ def render_svg(cast_path: Path) -> str:
             text_parts.append("</tspan>")
         text_parts.append("    </text>")
 
-        # Frame visibility : show from `time` to next keyframe's time (or end)
+        # Each frame uses an <animate> with values list spanning the FULL cycle.
+        # Opacity stays 0 from 0→time, jumps to 1 from time→next_time, returns to 0
+        # until the cycle ends. repeatCount="indefinite" makes the whole demo loop.
+        # Trade-off vs <set>: slightly more verbose per frame, but each frame is
+        # independently re-animated on every loop iteration (which <set> + syncbase
+        # references could not deliver portably).
         next_time = keyframes[idx + 1][0] if idx + 1 < len(keyframes) else total_duration
-        # Use opacity animation for crisp transitions
+        # Guard : keyTimes must be strictly increasing AND in [0,1]. Skip degenerate frames.
+        kt1 = time / total_duration
+        kt2 = next_time / total_duration
+        if kt2 <= kt1:
+            kt2 = min(kt1 + 0.001, 1.0)
         parts.append(f'    <g opacity="0">')
         parts.extend(text_parts)
-        parts.append(f'      <set attributeName="opacity" to="1" begin="{time:.2f}s" end="{total_duration:.2f}s"/>')
-        # Hide previous frame at this frame's start
-        if idx > 0:
-            parts.append(f'      <set attributeName="opacity" to="0" begin="{next_time:.2f}s" end="{total_duration:.2f}s"/>')
+        parts.append(
+            f'      <animate attributeName="opacity" '
+            f'values="0;0;1;1;0;0" '
+            f'keyTimes="0;{kt1:.4f};{kt1:.4f};{kt2:.4f};{kt2:.4f};1" '
+            f'dur="{total_duration:.2f}s" '
+            f'repeatCount="indefinite"/>'
+        )
         parts.append("    </g>")
 
     parts.append("  </g>")

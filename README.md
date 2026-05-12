@@ -2,12 +2,9 @@
 
 > **Local-first, drift-resistant memory system for Claude Code.** Markdown + BGE-M3 vector search + assertion verification. No vendor lock-in, no cloud round-trips, no schema drift.
 
-<!-- Demo asset placeholder — render docs/demo/demo.cast to docs/demo/demo.svg
-     via svg-term-cli (recommended) or the bundled docs/demo/cast_to_svg.py
-     (stdlib-only fallback). See docs/demo/README.md for the recording workflow.
-     Once rendered, replace this comment block with:
-       ![claude-cortex demo](docs/demo/demo.svg)
--->
+![claude-cortex demo](docs/demo/demo.svg)
+
+> 40-second looping demo : grep frustration → vector.py top-3 (BGE-M3 ~30 ms) → verify.py drift detection → note.py anti-duplicate. Source : `docs/demo/demo.cast` (asciicast v2). Re-render via `python docs/demo/cast_to_svg.py docs/demo/demo.cast > docs/demo/demo.svg` after editing.
 
 
 ```

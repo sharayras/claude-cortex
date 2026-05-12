@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Demo asset rendered + embedded in README** ([#5](https://github.com/sharayras/claude-cortex/issues/5)).
+  `docs/demo/demo.svg` is now committed (~494 KB, browser-renderable on GitHub).
+  Animation : 288 keyframes × per-frame `<animate>` with `repeatCount="indefinite"`
+  + `keyTimes` values list spanning the full 40 s cycle, so each frame independently
+  loops within the cycle. Terminal-style scrolling viewport keeps content within
+  the 90×28-char bounds even when cumulative output grows beyond the viewport.
+  README has a real `<img>` embed in place of the previous placeholder.
 - **Demo recording infrastructure** ([#5](https://github.com/sharayras/claude-cortex/issues/5)).
   `docs/demo/demo.cast` is a hand-crafted asciicast v2 file simulating the 5-beat
   showcase (grep frustration → vector.py top-3 → verify.py drift → note.py anti-duplicate
