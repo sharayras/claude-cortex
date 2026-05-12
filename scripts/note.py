@@ -99,7 +99,7 @@ def anti_doublon_check(text: str, threshold: float = 0.6) -> tuple[bool, str]:
 
 
 def make_frontmatter(name: str, description: str, mem_type: str, triggers: list[str]) -> str:
-    """Generate YAML frontmatter."""
+    """Generate YAML frontmatter (minimal default — for quick capture)."""
     today = datetime.date.today().isoformat()
     origin = os.environ.get("CLAUDE_SESSION_ID", "")
 
@@ -117,11 +117,90 @@ def make_frontmatter(name: str, description: str, mem_type: str, triggers: list[
     return "\n".join(lines)
 
 
+def make_template_frontmatter(name: str, description: str, mem_type: str, triggers: list[str]) -> str:
+    """Generate enriched YAML frontmatter (skeleton with placeholders for power users).
+
+    Pre-fills priority, related, index_entry, and assertions stubs per memory type so
+    the user only has to fill in the specifics rather than recall the schema. Targets
+    the same flat top-level layout that rebuild_index/verify/vector consume directly
+    (no `metadata:` wrapping like Claude Code's auto-memory write would create).
+
+    Per type:
+    - feedback : priority + triggers + related + index_entry stub
+    - project  : everything in feedback + last_verified (today) + 1 assertion stub
+    - reference: priority + triggers + related + index_entry stub (no assertions)
+
+    Implementation note : we still emit raw text (not yaml.safe_dump) because the
+    existing parser tolerates exact line shapes and the templates need readable
+    placeholders (PLACEHOLDER_*) that yaml.safe_dump would quote awkwardly.
+    """
+    today = datetime.date.today().isoformat()
+    origin = os.environ.get("CLAUDE_SESSION_ID", "")
+
+    triggers_str = ", ".join(triggers) if triggers else "PLACEHOLDER_TRIGGER"
+
+    lines = [
+        "---",
+        f"name: {name}",
+        f"description: {description}",
+        f"type: {mem_type}",
+    ]
+    if mem_type == "project":
+        lines.append(f"last_verified: {today}")
+    lines.extend([
+        "priority: normal",
+        f"triggers: [{triggers_str}]",
+        "related: []",
+        "index_entry:",
+        "  section: \"PLACEHOLDER_SECTION — fill in (must match a section in cortex_config.yaml)\"",
+        "  order: 100",
+        f"  label: \"{name}\"",
+        f"  hook: \"{description[:100]}\"",
+    ])
+    if mem_type == "project":
+        lines.extend([
+            "assertions:",
+            "  - source: PLACEHOLDER_PATH/file.md",
+            "    contains: \"PLACEHOLDER_NEEDLE\"",
+        ])
+    if origin:
+        lines.append(f"originSessionId: {origin}")
+    lines.append("---")
+    return "\n".join(lines)
+
+
+def make_template_body(name: str, text: str, mem_type: str) -> str:
+    """Generate a structured body stub per memory type (feedback/project: Why+How; reference: Source+When)."""
+    if mem_type == "reference":
+        return (
+            f"# {name}\n\n"
+            f"{text}\n\n"
+            "## Source\n\n"
+            "_TODO: URL, path, or citation for the external resource._\n\n"
+            "## When relevant\n\n"
+            "_TODO: what queries / situations should surface this reference?_\n"
+        )
+    # feedback + project share the Why/How structure (per MEMORY_PROTOCOL.md §Structure du corps)
+    return (
+        f"# {name}\n\n"
+        f"{text}\n\n"
+        "## Why\n\n"
+        "_TODO: the incident, constraint, or preference behind this rule/fact._\n\n"
+        "## How to apply\n\n"
+        "_TODO: when this kicks in (concrete triggers, scope, anti-patterns)._\n"
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("text", nargs="+", help="Memory content (free-form text)")
     parser.add_argument("--type", choices=["feedback", "project", "reference", "user"], default="feedback",
                         help="Memory type (default: feedback)")
+    parser.add_argument("--from-template", choices=["feedback", "project", "reference"], default=None,
+                        dest="from_template",
+                        help="Generate enriched skeleton with priority + index_entry + related + assertions stubs "
+                             "+ structured body (Why/How for feedback/project, Source/When for reference). "
+                             "Implies --type if not set explicitly.")
     parser.add_argument("--name", default=None, help="Explicit name (default: first sentence)")
     parser.add_argument("--description", default=None, help="Explicit description (default: truncated text)")
     parser.add_argument("--slug", default=None, help="Explicit slug for filename")
@@ -134,6 +213,14 @@ def main():
         print("ERROR: empty text", file=sys.stderr)
         sys.exit(1)
 
+    # --from-template implies --type if not explicitly set
+    if args.from_template:
+        # If user passed --type explicitly AND --from-template with different value, prefer --from-template
+        # (the template choice carries more intent than the default --type)
+        mem_type = args.from_template
+    else:
+        mem_type = args.type
+
     # Frontmatter fields
     if args.name:
         name = args.name
@@ -145,7 +232,7 @@ def main():
 
     # Slug
     slug = args.slug or slugify(name)
-    filename = f"{args.type}_{slug}.md"
+    filename = f"{mem_type}_{slug}.md"
 
     target_path = MEMORY_DIR / filename
     if target_path.exists():
@@ -156,7 +243,7 @@ def main():
     # Triggers
     triggers = extract_triggers(text)
     if not triggers:
-        triggers = ["note", args.type]
+        triggers = ["note", mem_type]
 
     # Anti-duplicate check
     if not args.force:
@@ -166,8 +253,13 @@ def main():
             sys.exit(2)
 
     # Compose
-    fm = make_frontmatter(name, description, args.type, triggers)
-    content = f"{fm}\n\n{text}\n"
+    if args.from_template:
+        fm = make_template_frontmatter(name, description, mem_type, triggers)
+        body = make_template_body(name, text, mem_type)
+        content = f"{fm}\n\n{body}"
+    else:
+        fm = make_frontmatter(name, description, mem_type, triggers)
+        content = f"{fm}\n\n{text}\n"
 
     if args.dry_run:
         print()
@@ -179,12 +271,18 @@ def main():
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(content, encoding="utf-8")
     print(f"✅ Memory created: {target_path}")
-    print(f"   Type    : {args.type}")
+    print(f"   Type    : {mem_type}")
     print(f"   Triggers: {triggers}")
+    if args.from_template:
+        print(f"   Template: enriched skeleton ({mem_type})")
     print()
     print("⏭️ Suggested next steps:")
-    print(f"   1. Edit the file to enrich (index_entry, related, assertions)")
-    print(f"   2. Run `python scripts/rebuild_index.py --write` if index_entry added")
+    if args.from_template:
+        print(f"   1. Edit the file: replace PLACEHOLDER_* values, fill Why/How sections")
+        print(f"   2. Run `python scripts/rebuild_index.py --write` (index_entry already present)")
+    else:
+        print(f"   1. Edit the file to enrich (index_entry, related, assertions)")
+        print(f"   2. Run `python scripts/rebuild_index.py --write` if index_entry added")
     print(f"   3. Run `python scripts/vector.py index` to reindex")
     print(f"   4. (Or just /sync-memory to orchestrate 2+3)")
 

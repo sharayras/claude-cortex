@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`note.py --from-template <type>` flag** for typed memory skeletons
+  ([#1](https://github.com/sharayras/claude-cortex/issues/1)). Generates an enriched
+  flat top-level frontmatter (priority, triggers, related, `index_entry` with
+  `PLACEHOLDER_SECTION`/order/label/hook, plus assertions stub for `project`) and a
+  structured body (Why + How to apply for `feedback`/`project`, Source + When relevant
+  for `reference`). The default minimal mode (no `--from-template`) is unchanged for
+  quick capture. Bypasses the auto-memory `metadata:` wrapping that Claude Code's
+  `Write` tool would inject — downstream consumers (rebuild_index, verify, vector) see
+  the canonical schema directly. 6 new tests covering each template type + body
+  structure + flat top-level invariant. 35/35 tests pass (was 29/29).
+
 ### Fixed
 - **Frontmatter parsers now transparently handle Claude Code's auto-memory `metadata:` wrapping.**
   When a memory file is created via Claude Code's `Write` tool, the built-in auto-memory
