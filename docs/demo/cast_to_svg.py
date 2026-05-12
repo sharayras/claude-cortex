@@ -98,8 +98,14 @@ def render_svg(cast_path: Path) -> str:
     px_w = width * char_w + 40  # padding
     px_h = height * line_h + 40
 
+    # Explicit width/height attrs are required for GitHub markdown rendering.
+    # Without them the browser uses CSS-default replaced-element size (300×150),
+    # which makes the demo unreadable. We set the rendered size to the viewBox
+    # native dims so the demo renders at full intended scale on GitHub README.
     parts = [
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {px_w} {px_h}" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13">',
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {px_w} {px_h}" '
+        f'width="{px_w}" height="{px_h}" '
+        f'font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13">',
         f'  <rect width="100%" height="100%" fill="#0c0c0c"/>',
         f'  <g transform="translate(20, 26)" fill="#d4d4d4">',
     ]
