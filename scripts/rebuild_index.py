@@ -153,6 +153,26 @@ def parse_frontmatter(path: Path) -> dict | None:
         return None
 
 
+def _normalize_frontmatter(fm: dict) -> dict:
+    """Promote fields from `metadata:` wrapping to top-level (Claude Code auto-memory compat).
+
+    Claude Code's built-in auto-memory feature transforms memory frontmatters created
+    via the Write tool, wrapping all fields except `name`/`description` under
+    `metadata:` (and auto-injecting `node_type`, `originSessionId`). Most readers
+    expect top-level fields. This helper merges `metadata.*` fields into the
+    top-level dict (top-level wins on collision, preserving user intent if both exist).
+
+    Without this normalization, memories created via Write would silently fail to
+    appear in the rebuilt index — a class of bug that's hard to debug because the
+    YAML parses correctly but downstream consumers look at the wrong path.
+    """
+    metadata = fm.get("metadata")
+    if isinstance(metadata, dict):
+        for key, value in metadata.items():
+            fm.setdefault(key, value)
+    return fm
+
+
 def collect_entries() -> dict[str, list[dict]]:
     """Group memories by index section."""
     by_section: dict[str, list[dict]] = {}
@@ -162,6 +182,7 @@ def collect_entries() -> dict[str, list[dict]]:
         fm = parse_frontmatter(path)
         if fm is None:
             continue
+        fm = _normalize_frontmatter(fm)
         entry = fm.get("index_entry") or {}
         section = entry.get("section")
         if not section:

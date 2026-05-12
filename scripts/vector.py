@@ -74,8 +74,23 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
         fm = yaml.safe_load(text[4:end]) or {}
     except yaml.YAMLError:
         fm = {}
+    fm = _normalize_frontmatter(fm)
     body = text[end + 5:].strip()
     return fm, body
+
+
+def _normalize_frontmatter(fm: dict) -> dict:
+    """Promote fields from `metadata:` wrapping to top-level (Claude Code auto-memory compat).
+
+    See rebuild_index.py for the full rationale. Without this, memories created via
+    the Write tool (which auto-wraps fields under `metadata:`) would be indexed with
+    empty triggers/type/priority and rank poorly in vector search.
+    """
+    metadata = fm.get("metadata")
+    if isinstance(metadata, dict):
+        for key, value in metadata.items():
+            fm.setdefault(key, value)
+    return fm
 
 
 def build_indexed_text(fm: dict, body: str) -> str:

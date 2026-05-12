@@ -51,6 +51,20 @@ def parse_frontmatter(path: Path) -> dict | None:
         return None
 
 
+def _normalize_frontmatter(fm: dict) -> dict:
+    """Promote fields from `metadata:` wrapping to top-level (Claude Code auto-memory compat).
+
+    See rebuild_index.py for the full rationale. Without this, memories created via
+    the Write tool (which auto-wraps fields under `metadata:`) would never have their
+    assertions verified.
+    """
+    metadata = fm.get("metadata")
+    if isinstance(metadata, dict):
+        for key, value in metadata.items():
+            fm.setdefault(key, value)
+    return fm
+
+
 def check_assertion(assertion: dict) -> tuple[str, str]:
     """Run one assertion, return (status, message).
 
@@ -100,6 +114,7 @@ def verify_memory(path: Path) -> list[tuple[str, str, str]]:
     fm = parse_frontmatter(path)
     if fm is None:
         return []
+    fm = _normalize_frontmatter(fm)
     assertions = fm.get("assertions") or []
     if not assertions:
         return []
