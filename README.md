@@ -225,6 +225,12 @@ Validated on two independent production codebases (Discord bot + game studio wor
 
 Bug reports and PRs welcome at https://github.com/sharayras/claude-cortex/issues.
 
+## Contributing
+
+PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup (5 min), coding conventions, testing patterns, and the PR process. Good first issues are tagged [`good first issue`](https://github.com/sharayras/claude-cortex/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+
+For security vulnerabilities, please use GitHub's private security advisory feature (Security tab → Report a vulnerability) instead of opening a public issue.
+
 ## License
 
 MIT — see `LICENSE`.

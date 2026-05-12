@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Community contribution scaffolding** ([#7](https://github.com/sharayras/claude-cortex/issues/7)).
+  New `CONTRIBUTING.md` documenting dev setup (clone + install + test in 5 min),
+  coding conventions, testing patterns with `isolated_cortex`/`make_memory` fixtures,
+  PR process, commit message style, and the maintainer-only release process. New
+  `.github/ISSUE_TEMPLATE/` with `bug_report.md` and `feature_request.md` templates
+  (selectable in the GitHub "New issue" UI). New `.github/PULL_REQUEST_TEMPLATE.md`
+  with checklist (tests, CHANGELOG entry, docs updated, conventions, conventional
+  commit prefix). README gains a "Contributing" section linking to CONTRIBUTING.md
+  and the `good first issue` label filter.
 - **`note.py --from-template <type>` flag** for typed memory skeletons
   ([#1](https://github.com/sharayras/claude-cortex/issues/1)). Generates an enriched
   flat top-level frontmatter (priority, triggers, related, `index_entry` with
