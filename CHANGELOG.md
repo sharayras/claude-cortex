@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Demo recording infrastructure** ([#5](https://github.com/sharayras/claude-cortex/issues/5)).
+  `docs/demo/demo.cast` is a hand-crafted asciicast v2 file simulating the 5-beat
+  showcase (grep frustration → vector.py top-3 → verify.py drift → note.py anti-duplicate
+  → wrap), 39s total runtime, 288 events, with proper ANSI color codes for syntax
+  highlighting. `docs/demo/script.md` documents the exact command sequence + timing
+  for re-recording from a real cortex. `docs/demo/README.md` covers the 3 rendering
+  workflows (asciinema + svg-term-cli, terminalizer, OS native + ffmpeg) with trade-offs.
+  `docs/demo/cast_to_svg.py` is a stdlib-only fallback converter for users without
+  Node — generates a self-contained animated SVG with opacity-keyframed text spans
+  (handles ANSI fg colors). Rendered demo asset (`demo.svg`/`demo.gif`) is gitignored
+  pending visual review; re-runnable on demand. README has a placeholder comment
+  pointing to the workflow.
 - **Community contribution scaffolding** ([#7](https://github.com/sharayras/claude-cortex/issues/7)).
   New `CONTRIBUTING.md` documenting dev setup (clone + install + test in 5 min),
   coding conventions, testing patterns with `isolated_cortex`/`make_memory` fixtures,

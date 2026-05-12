@@ -48,3 +48,7 @@ Thumbs.db
 _vector_index/
 .cortex-test-memory/
 .test-target/
+
+# Demo assets (regenerable from docs/demo/demo.cast — large binary, not committed)
+docs/demo/demo.svg
+docs/demo/demo.gif

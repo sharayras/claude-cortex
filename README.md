@@ -2,6 +2,14 @@
 
 > **Local-first, drift-resistant memory system for Claude Code.** Markdown + BGE-M3 vector search + assertion verification. No vendor lock-in, no cloud round-trips, no schema drift.
 
+<!-- Demo asset placeholder — render docs/demo/demo.cast to docs/demo/demo.svg
+     via svg-term-cli (recommended) or the bundled docs/demo/cast_to_svg.py
+     (stdlib-only fallback). See docs/demo/README.md for the recording workflow.
+     Once rendered, replace this comment block with:
+       ![claude-cortex demo](docs/demo/demo.svg)
+-->
+
+
 ```
 ~/.claude/projects/<PROJECT_ID>/memory/
 ├── MEMORY.md              ← auto-generated index (rebuild_index.py)
