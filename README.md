@@ -25,6 +25,7 @@ The official plugin works for many use cases — but in production sessions we'v
 | **Anti-duplicates** | Implicit / advisory | **Enforced via hook** — Write blocked at vector score ≥ 0.6 |
 | **Drift detection** | None | `verify.py` checks assertions against real source files |
 | **Cost** | Tokens consumed per recall | Local, ~30 ms latency, zero token cost |
+| **Auto-memory compat** | N/A | Transparently handles Claude Code's `metadata:` frontmatter wrapping (memories created via the Write tool work without extra steps — see [CHANGELOG](CHANGELOG.md)) |
 
 This isn't a replacement for the MCP plugin in every case. It's the path you take when you've outgrown what plugin sessions can return inside a context window.
 
